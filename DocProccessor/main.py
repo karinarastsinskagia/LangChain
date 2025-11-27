@@ -73,9 +73,8 @@ predefined_messages = [
     AIMessage("The main pros and cons based on the given input are...")
 ]
 
-response = model.invoke(predefined_messages)
-print(type(response))
-print(type(response.content), response.content, response.response_metadata)
+response: AIMessage = model.invoke(predefined_messages)
+print(response.content)
 
 # agent = create_agent(
 #     model,
