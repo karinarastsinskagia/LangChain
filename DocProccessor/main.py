@@ -1,9 +1,6 @@
-from langchain_classic.chains.question_answering.map_reduce_prompt import messages
 from langchain_ollama import ChatOllama
-from langchain.agents import create_agent
 from langchain.messages import SystemMessage, HumanMessage, AIMessage
 from langchain_community.document_loaders.csv_loader import CSVLoader
-from numpy.matlib import empty
 
 SYSTEM_PROMPT = """You are an expert text analyser for pros and cons based on reviews.
 Your job is to take a text with pros and cons and group them into topics 
