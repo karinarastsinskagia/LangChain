@@ -74,14 +74,3 @@ predefined_messages = [
 
 response: AIMessage = model.invoke(predefined_messages)
 print(response.content)
-
-# agent = create_agent(
-#     model,
-#     # tools=[analyse_pros_cons],
-#     system_prompt=SYSTEM_PROMPT,
-# )
-# response = agent.invoke({"messages": predefined_messages})
-# print(type(response['messages']))
-# # Get AI Message
-# ai_message: AIMessage = response['messages'][2]
-# print(ai_message.content)
