@@ -50,7 +50,6 @@ def separate_pros_cons_by_read_file(file_path: str):
 
     return pros_list, cons_list
 
-
 pros, cons = separate_pros_cons_by_read_file("pros-cons.csv")
 # print(pros)
 # print(cons)
