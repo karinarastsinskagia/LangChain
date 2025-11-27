@@ -8,6 +8,27 @@ SYSTEM_PROMPT = """You are an expert text analyser for pros and cons based on re
 Your job is to take a text with pros and cons and group them into topics 
 where each topic should have a sentence with the format of Users said, Users mentioned .."""
 
+pros_themes = [
+    "Ease of Use & Navigation",
+    "Customer Support & Service",
+    "Customization & Flexibility",
+    "Feature Set & Functionality",
+    "Performance & Reliability",
+    "Implementation & Onboarding",
+    "User Experience & Engagement",
+    "Value for Money / Pricing & ROI"
+]
+
+cons_themes = [
+    "Limited Features / Missing Tools",
+    "Customization Limitations",
+    "Reporting & Analytics Issues",
+    "Complexity & Learning Curve",
+    "Cost & Add-ons",
+    "Integration & Technical Challenges",
+    "Performance or Reliability Issues"
+]
+
 
 def separate_pros_cons_by_read_file(file_path: str):
     loader = CSVLoader(file_path=file_path)
@@ -45,13 +66,16 @@ predefined_messages = [
     SystemMessage("You are a helpful assistant that summarize the given pros and cons in topics."),
     HumanMessage(
         content=f"Here are the pros:\n{pros}\n\nHere are the cons:\n{cons}\n\n"
-                f"Please group them into topics  where each topic should have a sentence with the format of Users said, Users mentioned"),
+                f"Please group them into into these categories for pros:{pros_themes} and these for cons:{cons_themes}."
+                f"Write a short, unique description summarizing what users express, using varied sentence structures and tones (e.g., Users find…, Users appreciate…, Users value…, Users desire…, etc.)."
+                f"Indicate how many reviews mention this theme (note that a single review may mention multiple themes)."
+                f"I want the Output format to be: Theme: [Theme Name]  Description: [Short, varied summary of user sentiment]  Number of Mentions: [Count]"),
     AIMessage("The main pros and cons based on the given input are...")
 ]
 
 response = model.invoke(predefined_messages)
 print(type(response))
-print(type(response.content),response.content, response.response_metadata)
+print(type(response.content), response.content, response.response_metadata)
 
 # agent = create_agent(
 #     model,
