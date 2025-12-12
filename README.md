@@ -11,4 +11,5 @@ The following commands are required in order to execute projects:
 
 ### Description
 
-1. `DocProccessor` folder, includes an AI agent for analyzing the given csv of pros & cons and grouping them into topics/categories. 
+1. `DocProccessor` folder, use llm for analyzing the given csv of pros & cons and grouping them into topics/categories. 
+2`DocProccessor` folder, includes an AI agent for fetch weather information for the requested city / country. 
