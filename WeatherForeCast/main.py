@@ -67,6 +67,7 @@ agent = create_agent(
     model,
     tools=[search,get_weather],
     system_prompt=SYSTEM_PROMPT,
+    memory=memory
 )
 input_messages = [
     {"role": "user", "content": location}
