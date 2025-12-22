@@ -16,3 +16,4 @@ The following commands are required in order to execute projects:
 
 1. `DocProccessor` folder, use llm for analyzing the given csv of pros & cons and grouping them into topics/categories. 
 2. `WeatherForeCast` folder, includes an AI agent for fetch weather information for the requested cities / countries. 
+3. `Chatbot` folder, includes a local conversational chatbot assistant. 
