@@ -1,85 +1,80 @@
 import requests
-
+from langchain_classic.agents import AgentExecutor,create_react_agent
+from langchain_classic.memory import ConversationBufferMemory
+from langchain_community.tools import wikipedia, WikipediaQueryRun
+from langchain_community.utilities import WikipediaAPIWrapper
+from langchain_core.prompts import PromptTemplate
 from langchain_ollama import ChatOllama
-from langchain.agents import create_agent
-from langchain.tools import tool
-from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 
-SYSTEM_PROMPT = """You are a weather forecast assistant.
-Your job is to take a location and find its current weather conditions.
-Use the 'search' tool to resolve the location and the 'get_weather' tool to get actual weather data.
-Do not guess the weather yourself.
-Return a concise summary in this style:
+prompt = PromptTemplate.from_template("""
+You are a helpful AI assistant.
+Use tools when necessary to answer factual questions.
 
-"The weather in {location} is currently {temp} degrees Celsius with a wind speed of {wind} kilometers per hour.Advice: {advice}"
+Conversation history:
+{chat_history}
 
-Here, {advice} should be a short recommendation like 'take an umbrella' or 'wear warm clothes'.
-Do not add anything else besides this single sentence.
-"""
+You have access to the following tools:
+{tools}
 
-location = input("Which country or city are your interested for the weather conditions ?:")
-if not location:
-    location = "New York"
+Tool names:
+{tool_names}
+
+User question:
+{input}
+
+{agent_scratchpad}
+
+Always end with 'Final Answer:' followed by your complete response after using tools or gathering information. Do not repeat or loop indefinitely.
+""")
 
 model = ChatOllama(
     model="mistral",
-    temperature=0.1,
+    temperature=0.3,
     max_tokens=10000,
     timeout=30
 )
 
-@tool
-def search(location: str) -> dict:
-    """Return latitude and longitude for a given location name using OSM."""
-    url = "https://nominatim.openstreetmap.org/search"
-    params = {"q": location, "format": "json", "limit": 1}
+wiki = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper(top_k_results=3, doc_content_chars_max=2000))
+memory = ConversationBufferMemory(memory_key="chat_history",return_messages=True)
 
-    res = requests.get(url, params=params, headers={"User-Agent": "LangChainWeatherBot"})
-    data = res.json()
-
-    if not data:
-        return {"error": "Location not found"}
-
-
-    return {"lat": float(data[0]["lat"]), "lon": float(data[0]["lon"]), "location": location}
-
-@tool
-def get_weather(lat: float, lon: float) -> str:
-
-    """Get current weather using Open-Meteo (free)."""
-
-    url = "https://api.open-meteo.com/v1/forecast"
-    params = {
-        "latitude": lat,
-        "longitude": lon,
-        "current_weather": True,
-    }
-
-    res = requests.get(url, params=params)
-    current = res.json().get("current_weather", {})
-
-    temp = current.get("temperature")
-    wind = current.get("windspeed")
-
-    return f"Weather is: {temp}°C, wind {wind} km/h"
-
-agent = create_agent(
+agent = create_react_agent(
     model,
-    tools=[search,get_weather],
-    system_prompt=SYSTEM_PROMPT,
-    memory=memory
+    tools=[wiki],
+    prompt=prompt,
 )
-input_messages = [
-    {"role": "user", "content": location}
-]
-response = agent.invoke({"messages": input_messages })
-messages = response.get("messages", [])
 
-# Find the last assistant message
-for msg in messages:
-    # print(msg)
-    if isinstance(msg, AIMessage):
-        print(msg.content)
+agent_executor = AgentExecutor(
+            agent=agent,
+            tools=[wiki],
+            memory=memory,
+            max_iterations = 2,
+            verbose= True,  # Enable for debugging
+            handle_parsing_errors=True  # Gracefully handle agent errors
+        )
 
-#todo Create chain are you interested for other location ? which one?
+
+while True:
+    user_query = input("What you would like to ask/know? ('q' to quit): ")
+    if user_query.strip().lower() in {"q", "quit", "exit"}:
+        print("Goodbye!")
+        break
+
+    if not user_query.strip():
+        print("Nothing you want to ask? Ok bye!")
+        break
+
+
+    # Invoke the agent with the running history
+    response = agent_executor.invoke({"input": user_query})
+    response_messages = response.get("messages", [])
+
+    # Find and print the assistant's message
+    for msg in response_messages:
+        print(msg)
+
+    # Ask whether the user wants another location (outside of the LLM to keep outputs clean)
+    again = input("Would you like to ask anything else? (y/n): ").strip().lower()
+    if again not in {"y", "yes"}:
+        print("Goodbye!")
+        break
 
